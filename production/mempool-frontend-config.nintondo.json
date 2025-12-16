@@ -1,0 +1,16 @@
+{
+  "OFFICIAL_MEMPOOL_SPACE": false,
+  "TESTNET_ENABLED": false,
+  "TESTNET4_ENABLED": false,
+  "LIQUID_ENABLED": false,
+  "LIQUID_TESTNET_ENABLED": false,
+  "SIGNET_ENABLED": false,
+  "MEMPOOL_WEBSITE_URL": "https://mainnet.nintondo.trrxitte.com",
+  "LIQUID_WEBSITE_URL": "",
+  "ITEMS_PER_PAGE": 25,
+  "LIGHTNING": false,
+  "ACCELERATOR": false,
+  "PUBLIC_ACCELERATIONS": false,
+  "AUDIT": false,
+  "CUSTOMIZATION": "custom-nintondo-config.json"
+}

@@ -1,0 +1,48 @@
+{
+  "theme": "contrast",
+  "enterprise": "nintondo",
+  "branding": {
+    "name": "nintondo-nyan",
+    "title": "Nintondo Nyan",
+    "site_id": 42,
+    "header_img": "/resources/nintondo/nintondo-logo.svg",
+    "footer_img": "/resources/nintondo/nintondo-logo.svg"
+  },
+  "dashboard": {
+    "widgets": [
+      {
+        "component": "fees",
+        "mobileOrder": 3
+      },
+      {
+        "component": "walletBalance",
+        "mobileOrder": 1,
+        "props": {
+          "wallet": "NINTONDO"
+        }
+      },
+      {
+        "component": "goggles",
+        "mobileOrder": 5
+      },
+      {
+        "component": "wallet",
+        "mobileOrder": 2,
+        "props": {
+          "wallet": "NINTONDO",
+          "period": "all"
+        }
+      },
+      {
+        "component": "blocks"
+      },
+      {
+        "component": "walletTransactions",
+        "mobileOrder": 4,
+        "props": {
+          "wallet": "NINTONDO"
+        }
+      }
+    ]
+  }
+}

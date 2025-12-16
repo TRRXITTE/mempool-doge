@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="120" viewBox="0 0 420 120">
+  <rect x="5" y="5" width="410" height="110" rx="26" fill="#e60012" />
+  <rect x="13" y="13" width="394" height="94" rx="20" fill="none" stroke="#ffffff" stroke-width="6" />
+  <text x="50%" y="50%" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="bold" text-anchor="middle" dominant-baseline="middle">
+    NINTONDO NYAN
+  </text>
+</svg>
