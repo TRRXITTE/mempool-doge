@@ -62,6 +62,11 @@ export class MempoolBlocksComponent implements OnInit, OnChanges, OnDestroy {
   keySubscription: Subscription;
   isTabHiddenSubscription: Subscription;
   network = '';
+  /**
+   * Target block interval for Dogecoin/Nintondo fork (1 minute).
+   * Used to render queue ETA so it does not default to Bitcoin's ~10 minutes.
+   */
+  blockIntervalMs = 60000;
   now = new Date().getTime();
   timeOffset = 0;
   timeLtrSubscription: Subscription;
