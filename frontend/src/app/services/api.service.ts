@@ -301,10 +301,16 @@ export class ApiService {
   }
 
   getPoolHashrate$(slug: string): Observable<any> {
+    if (slug === 'unknown') {
+      return of(null);
+    }
     return this.httpClient.get<any>(this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/pool/${slug}/hashrate`);
   }
 
   getPoolBlocks$(slug: string, fromHeight: number): Observable<BlockExtended[]> {
+    if (slug === 'unknown') {
+      return of([]);
+    }
     return this.httpClient.get<BlockExtended[]>(
         this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/pool/${slug}/blocks` +
         (fromHeight !== undefined ? `/${fromHeight}` : '')

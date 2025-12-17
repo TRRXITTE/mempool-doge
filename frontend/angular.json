@@ -198,7 +198,8 @@
             "vendorChunk": true,
             "extractLicenses": false,
             "buildOptimizer": false,
-            "sourceMap": true,
+            "sourceMap": false,
+            "progress": false,
             "optimization": false,
             "namedChunks": true
           },

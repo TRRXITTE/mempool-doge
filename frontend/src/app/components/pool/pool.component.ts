@@ -84,6 +84,9 @@ export class PoolComponent implements OnInit {
       .pipe(
         switchMap((data) => {
           this.isLoading = false;
+          if (!data) {
+            return this.apiService.getPoolStats$(this.slug);
+          }
           const hashrate = data.map(val => [val.timestamp * 1000, val.avgHashrate]);
           const share = data.map(val => [val.timestamp * 1000, val.share * 100]);
           this.prepareChartOptions(hashrate, share);
