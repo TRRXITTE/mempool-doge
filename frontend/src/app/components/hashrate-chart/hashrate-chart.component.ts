@@ -164,7 +164,8 @@ export class HashrateChartComponent implements OnInit {
             diffIndex++;
           }
 
-          let maResolution = 15;
+          // Smooth hashrate using a 10‑point (≈10 minute) moving average
+          let maResolution = 10;
           const hashrateMa = [];
           for (let i = maResolution - 1; i < data.hashrates.length; ++i) {
             let avg = 0;

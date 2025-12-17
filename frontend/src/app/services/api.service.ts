@@ -301,26 +301,6 @@ export class ApiService {
   }  
 
   getPoolStats$(slug: string): Observable<PoolStat> {
-    if (slug === 'unknown' || slug === 'nintondo') {
-      return of({
-        pool: {
-          id: null,
-          name: slug === 'nintondo' ? 'Nintondo' : $localize`:@@e5d8bb389c702588877f039d72178f219453a72d:Unknown`,
-          link: '',
-          regexes: '[]',
-          addresses: slug === 'nintondo' ? '["NbDH1KEZjMUBvTUXUFDHzJVG31LSp3QK4c"]' : '[]',
-          emptyBlocks: 0,
-          slug: slug,
-          poolUniqueId: 0,
-          unique_id: 0,
-        },
-        blockCount: { all: 0, '24h': 0, '1w': 0 },
-        blockShare: { all: 0, '24h': 0, '1w': 0 },
-        estimatedHashrate: 0,
-        avgBlockHealth: 0,
-        totalReward: 0,
-      });
-    }
     return this.httpClient.get<PoolStat>(this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/pool/${slug}`)
     .pipe(
       map((poolStats) => {
@@ -351,17 +331,11 @@ export class ApiService {
   }
 
   getPoolHashrate$(slug: string): Observable<any> {
-    if (slug === 'unknown' || slug === 'nintondo') {
-      return of(null);
-    }
     return this.httpClient.get<any>(this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/pool/${slug}/hashrate`)
       .pipe(catchError(() => of(null)));
   }
 
   getPoolBlocks$(slug: string, fromHeight: number): Observable<BlockExtended[]> {
-    if (slug === 'unknown' || slug === 'nintondo') {
-      return of([]);
-    }
     return this.httpClient.get<BlockExtended[]>(
         this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/pool/${slug}/blocks` +
         (fromHeight !== undefined ? `/${fromHeight}` : '')
@@ -641,6 +615,8 @@ export class ApiService {
   getAccelerationsByPool$(slug: string): Observable<AccelerationInfo[]> {
     return this.httpClient.get<AccelerationInfo[]>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/accelerations/pool/${slug}`
+    ).pipe(
+      catchError(() => of([]))
     );
   }
 
@@ -667,6 +643,8 @@ export class ApiService {
     const queryString = queryParams.toString();
     return this.httpClient.get<{ cost: number, count: number }>(
       this.apiBaseUrl + this.apiBasePath + '/api/v1/accelerations/total' + (queryString?.length ? '?' + queryString : '')
+    ).pipe(
+      catchError(() => of({ cost: 0, count: 0 }))
     );
   }
 

@@ -289,9 +289,9 @@ class Blocks {
       extras.totalInputs = stats.ins;
       extras.totalOutputs = stats.outs;
       extras.totalOutputAmt = stats.total_out;
-      extras.segwitTotalTxs = stats.swtxs;
-      extras.segwitTotalSize = stats.swtotal_size;
-      extras.segwitTotalWeight = stats.swtotal_weight;
+      extras.segwitTotalTxs = stats.swtxs ?? 0;
+      extras.segwitTotalSize = stats.swtotal_size ?? 0;
+      extras.segwitTotalWeight = stats.swtotal_weight ?? 0;
     }
 
     if (Common.blocksSummariesIndexingEnabled()) {
@@ -1454,9 +1454,9 @@ class Blocks {
         total_input_amt: block.extras.totalInputAmt ?? null,
         total_outputs: block.extras.totalOutputs ?? null,
         total_output_amt: block.extras.totalOutputAmt ?? null,
-        segwit_total_txs: block.extras.segwitTotalTxs ?? null,
-        segwit_total_size: block.extras.segwitTotalSize ?? null,
-        segwit_total_weight: block.extras.segwitTotalWeight ?? null,
+        segwit_total_txs: block.extras.segwitTotalTxs ?? 0,
+        segwit_total_size: block.extras.segwitTotalSize ?? 0,
+        segwit_total_weight: block.extras.segwitTotalWeight ?? 0,
         avg_tx_size: block.extras.avgTxSize ?? null,
         utxoset_change: block.extras.utxoSetChange ?? null,
         utxoset_size: block.extras.utxoSetSize ?? null,
