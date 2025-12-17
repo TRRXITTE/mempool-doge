@@ -112,7 +112,28 @@ export class ElectrsApiService {
   }
 
   getAddress$(address: string): Observable<Address> {
-    return this.httpClient.get<Address>(this.apiBaseUrl + this.apiBasePath + '/api/address/' + address);
+    const emptyAddress: Address = {
+      address,
+      chain_stats: {
+        funded_txo_count: 0,
+        funded_txo_sum: 0,
+        spent_txo_count: 0,
+        spent_txo_sum: 0,
+        tx_count: 0,
+      },
+      mempool_stats: {
+        funded_txo_count: 0,
+        funded_txo_sum: 0,
+        spent_txo_count: 0,
+        spent_txo_sum: 0,
+        tx_count: 0,
+      },
+      is_pubkey: false,
+    };
+
+    return this.httpClient.get<Address>(this.apiBaseUrl + this.apiBasePath + '/api/address/' + address).pipe(
+      catchError(() => of(emptyAddress)),
+    );
   }
 
   getPubKeyAddress$(pubkey: string): Observable<Address> {
@@ -139,7 +160,9 @@ export class ElectrsApiService {
     if (txid) {
       params = params.append('after_txid', txid);
     }
-    return this.httpClient.get<Transaction[]>(this.apiBaseUrl + this.apiBasePath + '/api/address/' + address + '/txs', { params });
+    return this.httpClient.get<Transaction[]>(this.apiBaseUrl + this.apiBasePath + '/api/address/' + address + '/txs', { params }).pipe(
+      catchError(() => of([]))
+    );
   }
 
   getAddressesTransactions$(addresses: string[], txid?: string): Observable<Transaction[]> {
@@ -159,7 +182,9 @@ export class ElectrsApiService {
     if (txid) {
       params = params.append('after_txid', txid);
     }
-    return this.httpClient.get<AddressTxSummary[]>(this.apiBaseUrl + this.apiBasePath + '/api/address/' + address + '/txs/summary', { params });
+    return this.httpClient.get<AddressTxSummary[]>(this.apiBaseUrl + this.apiBasePath + '/api/address/' + address + '/txs/summary', { params }).pipe(
+      catchError(() => of([]))
+    );
   }
 
   getAddressesSummary$(addresses: string[],  txid?: string): Observable<AddressTxSummary[]> {
@@ -201,7 +226,9 @@ export class ElectrsApiService {
   }
 
   getAddressUtxos$(address: string): Observable<Utxo[]> {
-    return this.httpClient.get<Utxo[]>(this.apiBaseUrl + this.apiBasePath + '/api/address/' + address + '/utxo');
+    return this.httpClient.get<Utxo[]>(this.apiBaseUrl + this.apiBasePath + '/api/address/' + address + '/utxo').pipe(
+      catchError(() => of([]))
+    );
   }
 
   getScriptHashUtxos$(script: string): Observable<Utxo[]> {

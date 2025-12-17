@@ -284,6 +284,18 @@ export class ApiService {
           }
         });
         return response;
+      }),
+      catchError(() => {
+        const empty = new HttpResponse({
+          body: interval !== undefined ? {
+            pools: [],
+            blockCount: 0,
+            lastEstimatedHashrate: 0,
+            lastEstimatedHashrate3d: 0,
+            lastEstimatedHashrate1w: 0,
+          } : [],
+        });
+        return of(empty);
       })
     );
   }  
@@ -316,7 +328,25 @@ export class ApiService {
           poolStats.pool.name = $localize`:@@e5d8bb389c702588877f039d72178f219453a72d:Unknown`;
         }
         return poolStats;
-      })
+      }),
+      catchError(() => of({
+        pool: {
+          id: null,
+          name: slug,
+          link: '',
+          regexes: '[]',
+          addresses: '[]',
+          emptyBlocks: 0,
+          slug: slug,
+          poolUniqueId: 0,
+          unique_id: 0,
+        },
+        blockCount: { all: 0, '24h': 0, '1w': 0 },
+        blockShare: { all: 0, '24h': 0, '1w': 0 },
+        estimatedHashrate: 0,
+        avgBlockHealth: 0,
+        totalReward: 0,
+      }))
     );
   }
 
@@ -324,7 +354,8 @@ export class ApiService {
     if (slug === 'unknown' || slug === 'nintondo') {
       return of(null);
     }
-    return this.httpClient.get<any>(this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/pool/${slug}/hashrate`);
+    return this.httpClient.get<any>(this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/pool/${slug}/hashrate`)
+      .pipe(catchError(() => of(null)));
   }
 
   getPoolBlocks$(slug: string, fromHeight: number): Observable<BlockExtended[]> {
@@ -334,7 +365,7 @@ export class ApiService {
     return this.httpClient.get<BlockExtended[]>(
         this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/pool/${slug}/blocks` +
         (fromHeight !== undefined ? `/${fromHeight}` : '')
-      );
+      ).pipe(catchError(() => of([])));
   }
 
   getBlocks$(from: number): Observable<BlockExtended[]> {
@@ -363,35 +394,45 @@ export class ApiService {
 
   getDifficultyAdjustments$(interval: string | undefined): Observable<any> {
     return this.httpClient.get<any[]>(
-        this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/difficulty-adjustments` +
-        (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
-      );
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/difficulty-adjustments` +
+      (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] }))
+    );
   }
 
   getHistoricalHashrate$(interval: string | undefined): Observable<any> {
     return this.httpClient.get<any[]>(
-        this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/hashrate` +
-        (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
-      );
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/hashrate` +
+      (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] }))
+    );
   }
 
   getHistoricalPoolsHashrate$(interval: string | undefined): Observable<any> {
     return this.httpClient.get<any[]>(
-        this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/hashrate/pools` +
-        (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
-      );
+      this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/hashrate/pools` +
+      (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] }))
+    );
   }
 
   getHistoricalBlockFees$(interval: string | undefined) : Observable<any> {
     return this.httpClient.get<any[]>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/blocks/fees` +
       (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] }))
     );
   }
 
   getBlockFeesFromTimespan$(from: number, to: number): Observable<any> {
     return this.httpClient.get<any[]>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/blocks/fees?from=${from}&to=${to}`, { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] }))
     );
   }
 
@@ -399,6 +440,8 @@ export class ApiService {
     return this.httpClient.get<any[]>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/blocks/rewards` +
       (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] }))
     );
   }
 
@@ -406,6 +449,8 @@ export class ApiService {
     return this.httpClient.get<any[]>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/blocks/fee-rates` +
       (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] }))
     );
   }
 
@@ -413,6 +458,8 @@ export class ApiService {
     return this.httpClient.get<BlockSizesAndWeights>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/blocks/sizes-weights` +
       (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] } as unknown as HttpResponse<BlockSizesAndWeights>))
     );
   }
 
@@ -420,6 +467,8 @@ export class ApiService {
     return this.httpClient.get<any[]>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/blocks/predictions` +
       (interval !== undefined ? `/${interval}` : ''), { observe: 'response' }
+    ).pipe(
+      catchError(() => of({ body: [] }))
     );
   }
 
@@ -427,12 +476,16 @@ export class ApiService {
     this.setBlockAuditLoaded(hash);
     return this.httpClient.get<BlockAudit>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/block/${hash}/audit-summary`
+    ).pipe(
+      catchError(() => of(null))
     );
   }
 
   getBlockTxAudit$(hash: string, txid: string) : Observable<TxAuditStatus> {
     return this.httpClient.get<TxAuditStatus>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/block/${hash}/tx/${txid}/audit`
+    ).pipe(
+      catchError(() => of(null))
     );
   }
 
@@ -440,17 +493,33 @@ export class ApiService {
     return this.httpClient.get<AuditScore[]>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/blocks/audit/scores` +
       (from !== undefined ? `/${from}` : ``)
+    ).pipe(
+      catchError(() => of([]))
     );
   }
 
   getBlockAuditScore$(hash: string) : Observable<any> {
     return this.httpClient.get<any>(
       this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/blocks/audit/score/` + hash
+    ).pipe(
+      catchError(() => of(null))
     );
   }
 
   getRewardStats$(blockCount: number = 144): Observable<RewardStats> {
-    return this.httpClient.get<RewardStats>(this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/reward-stats/${blockCount}`);
+    const empty: RewardStats = {
+      startBlock: 0,
+      endBlock: 0,
+      totalReward: 0,
+      totalFee: 0,
+      totalTx: 1, // avoid divide-by-zero
+      blocks: 0,
+    } as RewardStats;
+
+    return this.httpClient.get<RewardStats>(this.apiBaseUrl + this.apiBasePath + `/api/v1/mining/reward-stats/${blockCount}`)
+      .pipe(
+        catchError(() => of(empty))
+      );
   }
 
   getEnterpriseInfo$(name: string): Observable<any> {

@@ -95,11 +95,32 @@ export class PoolComponent implements OnInit {
         map((poolStats) => {
           this.seoService.setTitle(poolStats.pool.name);
           this.seoService.setDescription($localize`:@@meta.description.mining.pool:See mining pool stats for ${poolStats.pool.name}\: most recent mined blocks, hashrate over time, total block reward to date, known coinbase addresses, and more.`);
-          let regexes = '"';
-          for (const regex of poolStats.pool.regexes) {
-            regexes += regex + '", "';
-          }
-          poolStats.pool.regexes = regexes.slice(0, -3);
+
+          const parseToArray = (value: any): string[] => {
+            if (Array.isArray(value)) {
+              return value;
+            }
+            if (typeof value === 'string') {
+              const trimmed = value.trim();
+              if (!trimmed) {
+                return [];
+              }
+              try {
+                const parsed = JSON.parse(trimmed);
+                return Array.isArray(parsed) ? parsed : [];
+              } catch {
+                return trimmed.split(/[\s,]+/).filter(Boolean);
+              }
+            }
+            return [];
+          };
+
+          const regexArray = parseToArray(poolStats.pool.regexes);
+          const addressArray = parseToArray(poolStats.pool.addresses);
+
+          // Preserve the parsed arrays so templates that expect arrays work as intended
+          (poolStats.pool as any).regexes = regexArray;
+          (poolStats.pool as any).addresses = addressArray;
 
           return Object.assign({
             logo: `/resources/mining-pools/` + (poolStats.pool.slug === 'unknown' ? 'unknown.png' : poolStats.pool.slug + '.svg')
