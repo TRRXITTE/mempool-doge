@@ -100,7 +100,7 @@ export class BlockFeesGraphComponent implements OnInit {
               }),
               map((response) => {
                 return {
-                  blockCount: parseInt(response.headers.get('x-total-count'), 10),
+                blockCount: parseInt(response.headers.get('x-total-count'), 10),
                 };
               }),
             );

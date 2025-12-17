@@ -53,6 +53,7 @@ export interface Env {
   LIQUID_TESTNET_ENABLED: boolean;
   ITEMS_PER_PAGE: number;
   KEEP_BLOCKS_AMOUNT: number;
+  BLOCK_TIME_SECONDS?: number;
   OFFICIAL_MEMPOOL_SPACE: boolean;
   BASE_MODULE: string;
   ROOT_NETWORK: string;
@@ -85,6 +86,11 @@ export interface Env {
   PACKAGE_JSON_VERSION_MEMPOOL_SPACE?: string;
   STRATUM_ENABLED: boolean;
   SERVICES_API?: string;
+  HALVING_INTERVAL?: number;
+  MIN_BLOCK_SUBSIDY?: number;
+  LOW_THROUGHPUT?: boolean;
+  START_BLOCK_SUBSIDY?: number;
+  AVG_BLOCK_TIME_MINUTES?: number;
   customize?: Customization;
   PROD_DOMAINS: string[];
 }
@@ -100,6 +106,7 @@ const defaultEnv: Env = {
   'ROOT_NETWORK': '',
   'ITEMS_PER_PAGE': 10,
   'KEEP_BLOCKS_AMOUNT': 8,
+  'BLOCK_TIME_SECONDS': 60,
   'OFFICIAL_MEMPOOL_SPACE': false,
   'NGINX_PROTOCOL': 'http',
   'NGINX_HOSTNAME': '127.0.0.1',
@@ -128,6 +135,11 @@ const defaultEnv: Env = {
   'ADDITIONAL_CURRENCIES': false,
   'STRATUM_ENABLED': false,
   'SERVICES_API': 'https://mempool.space/api/v1/services',
+  'HALVING_INTERVAL': 210000,
+  'START_BLOCK_SUBSIDY': 50,
+  'MIN_BLOCK_SUBSIDY': 0,
+  'LOW_THROUGHPUT': false,
+  'AVG_BLOCK_TIME_MINUTES': 1,
   'PROD_DOMAINS': [],
 };
 

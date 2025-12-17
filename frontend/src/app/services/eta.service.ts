@@ -24,6 +24,14 @@ export class EtaService {
     private miningService: MiningService,
   ) { }
 
+  private getBlockTimeMs(da?: DifficultyAdjustment): number {
+    const overrideSeconds = this.stateService?.env?.BLOCK_TIME_SECONDS;
+    if (overrideSeconds && !Number.isNaN(overrideSeconds)) {
+      return overrideSeconds * 1000;
+    }
+    return da?.adjustedTimeAvg;
+  }
+
   getProjectedEtaObservable(estimate: AccelerationEstimate, miningStats?: MiningStats): Observable<{ hashratePercentage: number, ETA: number, acceleratedETA: number }> {
     return combineLatest([
       this.stateService.mempoolTxPosition$.pipe(map(p => p?.position)),
@@ -44,6 +52,7 @@ export class EtaService {
         }
 
         let totalAcceleratedHashrate = 0;
+        const blockTimeMs = this.getBlockTimeMs(da);
         for (const poolId of estimate.pools) {
           const pool = pools[poolId];
           if (!pool) {
@@ -55,11 +64,11 @@ export class EtaService {
 
         return {
           hashratePercentage: acceleratingHashrateFraction * 100,
-          ETA: Date.now() + da.adjustedTimeAvg * mempoolPosition.block,
+          ETA: Date.now() + blockTimeMs * mempoolPosition.block,
           acceleratedETA: this.calculateETAFromShares([
             { block: mempoolPosition.block, hashrateShare: (1 - acceleratingHashrateFraction) },
             { block: 0, hashrateShare: acceleratingHashrateFraction },
-          ], da).time,
+          ], da, blockTimeMs).time,
         };
       }),
       shareReplay()
@@ -141,9 +150,11 @@ export class EtaService {
       return null;
     }
 
+    const blockTimeMs = this.getBlockTimeMs(da);
+
     if (!isAccelerated) {
       const blocks = mempoolPosition.block + 1;
-      const wait = da.adjustedTimeAvg * (mempoolPosition.block + 1);
+      const wait = blockTimeMs * (mempoolPosition.block + 1);
       return {
         now,
         time: wait + now + da.timeOffset,
@@ -177,7 +188,7 @@ export class EtaService {
           hashrateShare: ((pools[pos.poolId]?.lastEstimatedHashrate || 0) / miningStats.lastEstimatedHashrate)
         }))
       ];
-      return this.calculateETAFromShares(shares, da);
+      return this.calculateETAFromShares(shares, da, blockTimeMs);
     }
   }
 
@@ -199,7 +210,7 @@ export class EtaService {
       - $E = Q \times T$
         - expected number of blocks, multiplied by the avg time per block
     */
-  calculateETAFromShares(shares: { block: number, hashrateShare: number }[], da: DifficultyAdjustment, now: number = Date.now()): ETA {
+  calculateETAFromShares(shares: { block: number, hashrateShare: number }[], da: DifficultyAdjustment, blockTimeMs: number = this.getBlockTimeMs(da), now: number = Date.now()): ETA {
       const max = shares.reduce((max, share) => Math.max(max, share.block), 0);
 
       let tailProb = 0;
@@ -216,13 +227,13 @@ export class EtaService {
       }
       // at max depth, the transaction is guaranteed to be mined in the next block if it hasn't already
       Q += ((max + 1) * (1-tailProb));
-      const eta = da.adjustedTimeAvg * Q; // T x Q
+      const eta = blockTimeMs * Q; // T x Q
 
       return {
         now,
         time: eta + now + da.timeOffset,
         wait: eta,
-        blocks: Math.ceil(eta / da.adjustedTimeAvg),
+        blocks: Math.ceil(eta / blockTimeMs),
       };
   }
 
@@ -248,8 +259,9 @@ export class EtaService {
       return null;
     }
 
+    const blockTimeMs = this.getBlockTimeMs(da);
     const blocks = mempoolPosition.block + 1;
-    const wait = da.adjustedTimeAvg * (mempoolPosition.block + 1);
+    const wait = blockTimeMs * (mempoolPosition.block + 1);
     return {
       now,
       time: wait + now + da.timeOffset,

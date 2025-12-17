@@ -587,6 +587,12 @@ export class ApiService {
     return this.httpClient.post<CpfpInfo[]>(this.apiBaseUrl + this.apiBasePath + '/api/v1/cpfp', tx);
   }
 
+  getRecentTransactions$(): Observable<TransactionStripped[]> {
+    return this.httpClient.get<TransactionStripped[]>(this.apiBaseUrl + this.apiBasePath + '/api/mempool/recent').pipe(
+      catchError(() => of([]))
+    );
+  }
+
   // Cache methods
   async setBlockAuditLoaded(hash: string) {
     this.blockAuditLoaded[hash] = true;

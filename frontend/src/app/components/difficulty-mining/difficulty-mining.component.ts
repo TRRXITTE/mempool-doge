@@ -49,6 +49,8 @@ export class DifficultyMiningComponent implements OnInit {
     ])
     .pipe(
       map(([blocks, da]) => {
+        const blockTimeMs = (this.stateService.env.BLOCK_TIME_SECONDS || 600) * 1000;
+        const displayTimeMs = this.stateService.env.AVG_BLOCK_TIME_MINUTES ? this.stateService.env.AVG_BLOCK_TIME_MINUTES * 60 * 1000 : blockTimeMs;
         const maxHeight = blocks.reduce((max, block) => Math.max(max, block.height), 0);
         let colorAdjustments = 'var(--transparent-fg)';
         if (da.difficultyChange > 0) {
@@ -70,8 +72,9 @@ export class DifficultyMiningComponent implements OnInit {
           colorPreviousAdjustments = 'var(--transparent-fg)';
         }
 
-        this.blocksUntilHalving = 210000 - (maxHeight % 210000);
-        this.timeUntilHalving = new Date().getTime() + (this.blocksUntilHalving * 600000);
+        const halvingInterval = this.stateService.env.HALVING_INTERVAL || 210000;
+        this.blocksUntilHalving = halvingInterval - (maxHeight % halvingInterval);
+        this.timeUntilHalving = new Date().getTime() + (this.blocksUntilHalving * blockTimeMs);
         this.now = new Date().getTime();
 
         const data = {
@@ -86,7 +89,7 @@ export class DifficultyMiningComponent implements OnInit {
           previousRetarget: da.previousRetarget,
           blocksUntilHalving: this.blocksUntilHalving,
           timeUntilHalving: this.timeUntilHalving,
-          timeAvg: da.timeAvg,
+          timeAvg: displayTimeMs,
           adjustedTimeAvg: da.adjustedTimeAvg,
         };
         return data;

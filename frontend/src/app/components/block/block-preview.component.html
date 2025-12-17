@@ -60,7 +60,7 @@
                     {{ block.extras.pool.minerNames[1] }}
                   }
                 </span>
-                <img class="pool-logo" [src]="'/resources/mining-pools/' + block.extras.pool.slug + '.svg'" onError="this.src = '/resources/mining-pools/default.svg'" [alt]="'Logo of ' + block.extras.pool.name + ' mining pool'">
+            <img class="pool-logo" [src]="'/resources/mining-pools/' + (block.extras.pool.slug === 'unknown' ? 'unknown.png' : block.extras.pool.slug + '.svg')" onError="this.src = '/resources/mining-pools/block.png'" [alt]="'Logo of ' + block.extras.pool.name + ' mining pool'">
                 {{ block.extras.pool.name }}
               </a>
             </td>

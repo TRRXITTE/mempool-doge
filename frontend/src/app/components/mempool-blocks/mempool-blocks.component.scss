@@ -2,6 +2,20 @@
   width: var(--block-size);
   height: var(--block-size);
   transition: background 2s, right 2s, transform 1s, opacity 1s;
+  border-radius: 6px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px);
+  /* Original fill */
+  background-image:
+    linear-gradient(120deg, rgba(25,255,143,0.15), rgba(25,255,143,0.08) 40%, rgba(25,255,143,0.0) 60%),
+    linear-gradient(0deg, rgba(25,255,143,0.05) 0%, rgba(25,255,143,0.12) 50%, rgba(25,255,143,0.05) 100%);
+  /* Softer alternate (kept for quick swap)
+    linear-gradient(120deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.0) 60%),
+    linear-gradient(0deg, rgba(0,173,239,0.04) 0%, rgba(0,173,239,0.08) 50%, rgba(0,173,239,0.03) 100%);
+  */
+  animation: glassFlow 6s ease-in-out infinite;
 }
 
 .block-size {
@@ -30,6 +44,7 @@
 .mempool-block {
   position: absolute;
   top: 0;
+  color: #000000;
 }
 
 .block-body {
@@ -72,7 +87,8 @@
   position:absolute;
   top: calc(-0.192 * var(--block-size));
   left: calc(-0.16 * var(--block-size));
-  background-color: #232838;
+  background-color: #e331c2ed;
+  background-image: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(0,0,0,0.25));
   transform:skew(40deg);
   transform-origin:top;
   transition: transform 1s, left 1s;
@@ -86,6 +102,7 @@
   top: calc(-0.096 * var(--block-size));
   left: calc(-0.16 * var(--block-size));
   background-color: #191c27;
+  background-image: linear-gradient(180deg, rgba(247, 247, 247, 0.225), rgba(255, 12, 202, 0.3));
   z-index: -1;
 
   transform: skewY(50deg);
@@ -94,15 +111,32 @@
 }
 
 .mempool-block.bitcoin-block::after {
-  background-color: #403834;
+  background-color: rgba(255,255,255,0.06);
 }
 
 .mempool-block.bitcoin-block::before {
-  background-color: #2d2825;
+  background-color: rgba(0,0,0,0.2);
 }
 
 .mempool-block.hide-block {
   opacity: 0;
+}
+
+.mempool-block:hover .bitcoin-block {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+@keyframes fillPulse {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes glassFlow {
+  0% { background-position: 0% 0%, 0% 0%; }
+  50% { background-position: 60% 100%, 0% 0%; }
+  100% { background-position: 0% 0%, 0% 0%; }
 }
 
 .black-background {

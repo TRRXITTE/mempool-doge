@@ -51,8 +51,8 @@
             <img *ngIf="accelerationInfo.poolsData[pool]" 
               class="pool-logo" 
               [style.opacity]="accelerationInfo?.minedByPoolUniqueId && pool !== accelerationInfo?.minedByPoolUniqueId ? '0.3' : '1'"
-              [src]="'/resources/mining-pools/' + accelerationInfo.poolsData[pool].slug + '.svg'" 
-              onError="this.src = '/resources/mining-pools/default.svg'" 
+              [src]="'/resources/mining-pools/' + (accelerationInfo.poolsData[pool].slug === 'unknown' ? 'unknown.png' : accelerationInfo.poolsData[pool].slug + '.svg')" 
+              onError="this.src = '/resources/mining-pools/block.png'" 
               [alt]="'Logo of ' + pool.name + ' mining pool'">
             <br *ngIf="i % 6 === 5">
           </ng-container>

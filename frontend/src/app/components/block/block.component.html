@@ -195,7 +195,7 @@
                 {{ block.extras.pool.minerNames[1] }}
               }
             </span>
-            <img class="pool-logo" [src]="'/resources/mining-pools/' + block.extras.pool.slug + '.svg'" onError="this.src = '/resources/mining-pools/default.svg'" [alt]="'Logo of ' + block.extras.pool.name + ' mining pool'">
+            <img class="pool-logo" [src]="'/resources/mining-pools/' + (block.extras.pool.slug === 'unknown' ? 'unknown.png' : block.extras.pool.slug + '.svg')" onError="this.src = '/resources/mining-pools/block.png'" [alt]="'Logo of ' + block.extras.pool.name + ' mining pool'">
             {{ block.extras.pool.name }}
           </a>
         </td>
@@ -254,7 +254,7 @@
           <h3 class="block-subtitle" *ngIf="!isMobile">
             <ng-container i18n="block.stale-block">Stale Block</ng-container>
             @if (block?.extras?.pool) {
-              <img class="pool-logo large" [src]="'/resources/mining-pools/' + block?.extras?.pool.slug + '.svg'" onError="this.src = '/resources/mining-pools/default.svg'" [alt]="'Logo of ' + block?.extras?.pool.name + ' mining pool'">
+              <img class="pool-logo large" [src]="'/resources/mining-pools/' + (block?.extras?.pool.slug === 'unknown' ? 'unknown.png' : block?.extras?.pool.slug + '.svg')" onError="this.src = '/resources/mining-pools/block.png'" [alt]="'Logo of ' + block?.extras?.pool.name + ' mining pool'">
               <span class="pool-name">{{ block?.extras?.pool.name }}</span>
             }
           </h3>
@@ -288,7 +288,7 @@
             } @else {
               <ng-container i18n="block.stale-block">Winning Block</ng-container>
               @if (canonicalBlock?.extras?.pool) {
-                <img class="pool-logo large" [src]="'/resources/mining-pools/' + canonicalBlock?.extras?.pool.slug + '.svg'" onError="this.src = '/resources/mining-pools/default.svg'" [alt]="'Logo of ' + canonicalBlock?.extras?.pool.name + ' mining pool'">
+                <img class="pool-logo large" [src]="'/resources/mining-pools/' + (canonicalBlock?.extras?.pool.slug === 'unknown' ? 'unknown.png' : canonicalBlock?.extras?.pool.slug + '.svg')" onError="this.src = '/resources/mining-pools/block.png'" [alt]="'Logo of ' + canonicalBlock?.extras?.pool.name + ' mining pool'">
                 <span class="pool-name">{{ canonicalBlock?.extras?.pool.name }}</span>
               }
             }

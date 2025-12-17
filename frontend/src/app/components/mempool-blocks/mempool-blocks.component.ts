@@ -161,7 +161,12 @@ export class MempoolBlocksComponent implements OnInit, OnChanges, OnDestroy {
         .pipe(
           map((mempoolBlocks) => {
             if (!mempoolBlocks.length) {
-              return [{ index: 0, blockSize: 0, blockVSize: 0, feeRange: [0, 0], medianFee: 0, nTx: 0, totalFees: 0 }];
+              const empty: MempoolBlock[] = [];
+              const amount = this.stateService.env.MEMPOOL_BLOCKS_AMOUNT || 1;
+              for (let i = 0; i < amount; i++) {
+                empty.push({ index: i, blockSize: 0, blockVSize: 0, feeRange: [0, 0], medianFee: 0, nTx: 0, totalFees: 0 });
+              }
+              return empty;
             }
             return mempoolBlocks;
           }),
@@ -175,8 +180,10 @@ export class MempoolBlocksComponent implements OnInit, OnChanges, OnDestroy {
         });
 
         const stringifiedBlocks = JSON.stringify(mempoolBlocks);
-        this.mempoolBlocksFull = JSON.parse(stringifiedBlocks);
-        this.mempoolBlocks = this.reduceMempoolBlocksToFitScreen(JSON.parse(stringifiedBlocks));
+        const reduced = this.reduceMempoolBlocksToFitScreen(JSON.parse(stringifiedBlocks));
+        // Keep the same padded/normalized set for both display and styling
+        this.mempoolBlocksFull = reduced;
+        this.mempoolBlocks = reduced;
 
         this.now = Date.now();
 
@@ -318,11 +325,7 @@ export class MempoolBlocksComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   reduceEmptyBlocksToFitScreen(blocks: MempoolBlock[]): MempoolBlock[] {
-    const innerWidth = this.containerWidth || (this.stateService.env.BASE_MODULE !== 'liquid' && window.innerWidth <= 767.98 ? window.innerWidth : window.innerWidth / 2);
-    let blocksAmount = this.stateService.env.MEMPOOL_BLOCKS_AMOUNT;
-    if (!this.allBlocks) {
-      blocksAmount = Math.min(this.stateService.env.MEMPOOL_BLOCKS_AMOUNT, Math.floor(innerWidth / (this.blockWidth + this.blockPadding)));
-    }
+    const blocksAmount = this.stateService.env.MEMPOOL_BLOCKS_AMOUNT;
     while (blocks.length < blocksAmount) {
       blocks.push({
         blockSize: 0,
@@ -341,26 +344,37 @@ export class MempoolBlocksComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   reduceMempoolBlocksToFitScreen(blocks: MempoolBlock[]): MempoolBlock[] {
-    const innerWidth = this.containerWidth || (this.stateService.env.BASE_MODULE !== 'liquid' && window.innerWidth <= 767.98 ? window.innerWidth : window.innerWidth / 2);
-    let blocksAmount = this.stateService.env.MEMPOOL_BLOCKS_AMOUNT;
-    if (this.count) {
-      blocksAmount = 8;
-    } else if (!this.allBlocks) {
-      blocksAmount = Math.min(this.stateService.env.MEMPOOL_BLOCKS_AMOUNT, Math.floor(innerWidth / (this.blockWidth + this.blockPadding)));
+    const blocksAmount = this.stateService.env.MEMPOOL_BLOCKS_AMOUNT;
+
+    // Ensure we always render at least the configured amount of queue blocks,
+    // even when the mempool only has a handful of transactions.
+    const baseHeight = this.stateService.latestBlockHeight ?? this.chainTip ?? 0;
+    while (blocks.length < blocksAmount) {
+      blocks.push({
+        index: 0, // temp, normalized below
+        height: baseHeight + blocks.length + 1,
+        blockSize: 0,
+        blockVSize: 0,
+        feeRange: [],
+        medianFee: 0,
+        nTx: 0,
+        totalFees: 0,
+        isStack: false,
+      });
     }
-    while (blocks.length > blocksAmount) {
-      const block = blocks.pop();
-      if (!this.count) {
-        const lastBlock = blocks[blocks.length - 1];
-        lastBlock.blockSize += block.blockSize;
-        lastBlock.blockVSize += block.blockVSize;
-        lastBlock.nTx += block.nTx;
-        lastBlock.feeRange = lastBlock.feeRange.concat(block.feeRange);
-        lastBlock.feeRange.sort((a, b) => a - b);
-        lastBlock.medianFee = this.median(lastBlock.feeRange);
-        lastBlock.totalFees += block.totalFees;
+
+    // Trim any overflow without merging/stacking.
+    if (blocks.length > blocksAmount) {
+      blocks.splice(blocksAmount);
+    }
+
+    // Normalize indices so the right-most block is index 0 (smallest offset from right).
+    blocks.forEach((b, i) => {
+      b.index = i;
+      if (b.height === undefined) {
+        b.height = baseHeight + i + 1;
       }
-    }
+    });
     if (blocks.length) {
       blocks[blocks.length - 1].isStack = blocks[blocks.length - 1].blockVSize > this.stateService.blockVSize;
     }
@@ -391,10 +405,41 @@ export class MempoolBlocksComponent implements OnInit, OnChanges, OnDestroy {
   getStyleForMempoolBlock(mempoolBlock: MempoolBlock, index: number) {
     const emptyBackgroundSpacePercentage = Math.max(100 - mempoolBlock.blockVSize / this.stateService.blockVSize * 100, 0);
     const usedBlockSpace = 100 - emptyBackgroundSpacePercentage;
-    const backgroundGradients = [`repeating-linear-gradient(to right,  #554b45, #554b45 ${emptyBackgroundSpacePercentage}%`];
+    const backgroundGradients = [`linear-gradient(
+      90deg,
+      rgba(255,255,255,0.05) 0%,
+      rgba(255,255,255,0.05) ${emptyBackgroundSpacePercentage}%,
+      rgba(255,255,255,0.03) ${emptyBackgroundSpacePercentage}%,
+      rgba(255,255,255,0.03) 100%
+    `];
     const gradientColors = [];
 
     const trimmedFeeRange = index === 0 ? mempoolBlock.feeRange.slice(0, -1) : mempoolBlock.feeRange;
+
+    // Low throughput: glass with subtle fill to show occupancy without harsh colors
+    const lowThroughput = this.stateService.env.LOW_THROUGHPUT || trimmedFeeRange.length <= 1;
+    if (lowThroughput) {
+      const fill = Math.min(100, usedBlockSpace);
+      return {
+        'right': this.containerOffset + index * this.blockOffset + 'px',
+        'background': `
+          linear-gradient(90deg,
+            rgba(255,255,255,0.05) 0%,
+            rgba(255,255,255,0.05) ${emptyBackgroundSpacePercentage}%,
+            rgba(0,173,239,0.12) ${emptyBackgroundSpacePercentage}%,
+            rgba(0,173,239,0.24) ${emptyBackgroundSpacePercentage + fill}%,
+            rgba(255,255,255,0.05) 100%
+          ),
+          repeating-linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.08),
+            rgba(255, 255, 255, 0.08) 10px,
+            transparent 10px,
+            transparent 20px
+          )
+        `
+      };
+    }
 
     trimmedFeeRange.forEach((fee: number) => {
       let feeLevelIndex = feeLevels.slice().reverse().findIndex((feeLvl) => fee >= feeLvl);
@@ -418,7 +463,12 @@ export class MempoolBlocksComponent implements OnInit, OnChanges, OnDestroy {
   getStyleForMempoolEmptyBlock(index: number) {
     return {
       'right': this.containerOffset + index * this.blockOffset + 'px',
-      'background': '#554b45',
+      'background': `linear-gradient(135deg,
+        rgba(0,255,149,0.08) 0%,
+        rgba(0,255,149,0.16) 50%,
+        rgba(0,255,149,0.08) 100%)`,
+      'animation': 'fillPulse 3s ease-in-out infinite',
+      'border': '1px solid rgba(0,255,149,0.2)',
     };
   }
 

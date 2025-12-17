@@ -1,10 +1,10 @@
 /* Theme */
-$bg: #11131f;
-$active-bg: #000000;
-$hover-bg: #12131e;
-$fg: #fff;
+$bg: #000006b0;
+$active-bg: #0f0f0f;
+$hover-bg: #1f1f1f;
+$fg: #000000;
 $nav-bg: $bg;
-$title-fg: #2055e3;
+$title-fg: #20e3cd;
 
 $taproot: #eba814;
 $taproot-light: #d5a90a;
@@ -19,8 +19,8 @@ $gray-700: $fg;
 $nav-tabs-link-active-bg: $active-bg;
 
 $primary: #007cfa;
-$secondary: #272f4e;
-$tertiary: #6225b2;
+$secondary: #272727;
+$tertiary: #ff0bf778;
 $success: #0aab2f;
 $info: #00ddff;
 
@@ -73,14 +73,14 @@ $dropdown-link-active-bg: $active-bg;
   --tertiary: #{$tertiary};
   --success: #{$success};
   --info: #{$info};
-  --link-color: #{$link-color};
+  
   --link-hover-color: #{$link-hover-color};
   --icon: #f1f1f1;
   --skeleton-bg: #2e324e;
   --skeleton-bg-light: #5d6182;
 
-  --box-bg: #171c2a;
-  --stat-box-bg: #0b1018;
+  --box-bg: #00000024;
+  --stat-box-bg: #ffd73f14;
   --alert-bg: #3a1c61;
   --navbar-bg: #212121;
   --transparent-fg: #ffffffbb;
@@ -119,8 +119,14 @@ html, body {
   height: 100%;
 }
 
+/* Custom cursor */
+* {
+  cursor: url(https://traaitt.com/images/cursor.cur), auto;
+}
+
 body {
-  background-color: var(--active-bg);
+  background: #f6f3e5 url('/resources/NYANTExTRRXITTE-background.png') center/cover no-repeat fixed;
+  color: #1a1a1a;
   padding-bottom: 60px;
 }
 

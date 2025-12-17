@@ -17,6 +17,8 @@ class BitcoinApi implements AbstractBitcoinApi {
   }
 
   static convertBlock(block: IBitcoinApi.Block): IEsploraApi.Block {
+    const txCount = block.nTx !== undefined ? block.nTx : (Array.isArray((block as any).tx) ? (block as any).tx.length : null);
+    const weight = (block as any).weight !== undefined ? (block as any).weight : (block.size !== undefined ? block.size * 4 : undefined);
     return {
       id: block.hash,
       height: block.height,
@@ -26,9 +28,9 @@ class BitcoinApi implements AbstractBitcoinApi {
       nonce: block.nonce,
       difficulty: block.difficulty,
       merkle_root: block.merkleroot,
-      tx_count: block.nTx,
+      tx_count: txCount,
       size: block.size,
-      weight: block.weight,
+      weight,
       previousblockhash: block.previousblockhash,
       mediantime: block.mediantime,
       stale: block.confirmations === -1,
@@ -284,12 +286,13 @@ class BitcoinApi implements AbstractBitcoinApi {
   }
 
   protected async $convertTransaction(transaction: IBitcoinApi.Transaction, addPrevout: boolean, lazyPrevouts = false, allowMissingPrevouts = false): Promise<IEsploraApi.Transaction> {
+    const weight = transaction.weight !== undefined ? transaction.weight : transaction.size * 4;
     let esploraTransaction: IEsploraApi.Transaction = {
       txid: transaction.txid,
       version: transaction.version,
       locktime: transaction.locktime,
       size: transaction.size,
-      weight: transaction.weight,
+      weight,
       fee: 0,
       vin: [],
       vout: [],
@@ -327,7 +330,7 @@ class BitcoinApi implements AbstractBitcoinApi {
         confirmed: true,
         block_height: blocks.getCurrentBlockHeight() - transaction.confirmations + 1,
         block_hash: transaction.blockhash,
-        block_time: transaction.blocktime,
+        block_time: transaction.blocktime || transaction.time,
       };
     }
 
@@ -380,7 +383,8 @@ class BitcoinApi implements AbstractBitcoinApi {
     } else {
       mempoolEntry = await this.$getMempoolEntry(transaction.txid);
     }
-    transaction.fee = Math.round(mempoolEntry.fees.base * 100000000);
+    const feeBase = mempoolEntry.fees?.base ?? mempoolEntry.fee ?? 0;
+    transaction.fee = Math.round(feeBase * 100000000);
     return transaction;
   }
 

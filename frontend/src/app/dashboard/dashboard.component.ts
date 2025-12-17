@@ -116,7 +116,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.isLoadingWebSocket$ = this.stateService.isLoadingWebSocket$;
     this.seoService.resetTitle();
     this.seoService.resetDescription();
-    this.websocketService.want(['blocks', 'stats', 'mempool-blocks', 'live-2h-chart']);
+    this.websocketService.want(['blocks', 'stats', 'mempool-blocks', 'live-2h-chart', 'transactions']);
     this.websocketService.startTrackRbfSummary();
     this.network$ = merge(of(''), this.stateService.networkChanged$);
     this.mempoolLoadingStatus$ = this.stateService.loadingIndicators$
@@ -198,7 +198,17 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         })
       );
 
-    this.transactions$ = this.stateService.transactions$;
+    // Prefer websocket-fed transactions, but also poll REST as a fallback so the table renders even if WS is down
+    const websocketTx$ = this.stateService.transactions$;
+    const apiTx$ = interval(15000).pipe(
+      startWith(0),
+      switchMap(() => this.apiService.getRecentTransactions$()),
+      catchError(() => of([]))
+    );
+    this.transactions$ = merge(websocketTx$, apiTx$).pipe(
+      map((txs) => txs || []),
+      shareReplay(1)
+    );
 
     this.blocks$ = this.stateService.blocks$
       .pipe(

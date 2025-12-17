@@ -33,7 +33,7 @@ interface DiffShape {
   expected: boolean;
 }
 
-const EPOCH_BLOCK_LENGTH = 2016; // Bitcoin mainnet
+const EPOCH_BLOCK_LENGTH = 2016; // Bitcoin mainnet (kept for difficulty window rendering)
 
 @Component({
   selector: 'app-difficulty',
@@ -82,6 +82,8 @@ export class DifficultyComponent implements OnInit {
     ])
     .pipe(
       map(([blocks, da]) => {
+        const blockTimeMs = (this.stateService.env.BLOCK_TIME_SECONDS || 600) * 1000;
+        const displayTimeMs = this.stateService.env.AVG_BLOCK_TIME_MINUTES ? this.stateService.env.AVG_BLOCK_TIME_MINUTES * 60 * 1000 : blockTimeMs;
         const maxHeight = blocks.reduce((max, block) => Math.max(max, block.height), 0);
         let colorAdjustments = 'var(--transparent-fg)';
         if (da.difficultyChange > 0) {
@@ -103,12 +105,13 @@ export class DifficultyComponent implements OnInit {
           colorPreviousAdjustments = 'var(--transparent-fg)';
         }
 
-        const blocksUntilHalving = 210000 - (maxHeight % 210000);
-        const timeUntilHalving = new Date().getTime() + (blocksUntilHalving * 600000);
+        const halvingInterval = this.stateService.env.HALVING_INTERVAL || 210000;
+        const blocksUntilHalving = halvingInterval - (maxHeight % halvingInterval);
+        const timeUntilHalving = new Date().getTime() + (blocksUntilHalving * blockTimeMs);
         const newEpochStart = Math.floor(this.stateService.latestBlockHeight / EPOCH_BLOCK_LENGTH) * EPOCH_BLOCK_LENGTH;
         const newExpectedHeight = Math.floor(newEpochStart + da.expectedBlocks);
         this.now = new Date().getTime();
-        this.nextSubsidy = getNextBlockSubsidy(maxHeight);
+        this.nextSubsidy = this.getNextBlockSubsidy(maxHeight);
 
         if (blocksUntilHalving < da.remainingBlocks && !this.userSelectedMode) {
           this.mode = 'halving';
@@ -165,7 +168,7 @@ export class DifficultyComponent implements OnInit {
           previousRetarget: da.previousRetarget,
           blocksUntilHalving,
           timeUntilHalving,
-          timeAvg: da.timeAvg,
+          timeAvg: displayTimeMs,
           adjustedTimeAvg: da.adjustedTimeAvg,
         };
         return data;
@@ -235,17 +238,19 @@ export class DifficultyComponent implements OnInit {
   onBlur(): void {
     this.hoverSection = null;
   }
-}
 
-function getNextBlockSubsidy(height: number): number {
-  const halvings = Math.floor(height / 210_000) + 1;
-  // Force block reward to zero when right shift is undefined.
-  if (halvings >= 64) {
-    return 0;
+
+  private getNextBlockSubsidy(height: number): number {
+    const interval = this.stateService.env.HALVING_INTERVAL || 210_000;
+    const minSubsidy = this.stateService.env.MIN_BLOCK_SUBSIDY || 0;
+    const startSubsidy = this.stateService.env.START_BLOCK_SUBSIDY || 50;
+    const halvings = Math.floor(height / interval) + 1;
+
+    // Dogecoin-style: halve until minimum subsidy is reached, then stick.
+    let subsidy = startSubsidy * 100_000_000;
+    for (let i = 0; i < halvings; i++) {
+      subsidy = Math.max(minSubsidy * 100_000_000, Math.floor(subsidy / 2));
+    }
+    return subsidy;
   }
-
-  let subsidy = BigInt(50 * 100_000_000);
-  // Subsidy is cut in half every 210,000 blocks which will occur approximately every 4 years.
-  subsidy >>= BigInt(halvings);
-  return Number(subsidy);
 }
